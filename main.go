@@ -29,7 +29,12 @@ func main() {
 
 			if key.Type() == keyType && d == keyData {
 				fmt.Printf("User %s is connecting!\n", keyUser)
-				return nil, nil
+
+				return &ssh.Permissions{
+					CriticalOptions: map[string]string{
+						"user": keyUser,
+					},
+				}, nil
 			}
 
 			fmt.Println("user key did not match")
@@ -64,10 +69,12 @@ func main() {
 	for {
 		// Before use, a handshake must be performed on the incoming
 		// net.Conn.
-		_, chans, reqs, err := ssh.NewServerConn(nConn, config)
+		conn, chans, reqs, err := ssh.NewServerConn(nConn, config)
 		if err != nil {
 			panic(fmt.Sprintf("failed to handshake: %s", err))
 		}
+		fmt.Printf("We got a connection from user %s\n", conn.Permissions.CriticalOptions["user"])
+
 		fmt.Println("Got a connection!")
 		// The incoming Request channel must be serviced.
 		go ssh.DiscardRequests(reqs)
